@@ -15,8 +15,9 @@ const Education   = lazy(() => import('./pages/Education'))
 const Careers     = lazy(() => import('./pages/Careers'))
 const Contact     = lazy(() => import('./pages/Contact'))
 const Privacy     = lazy(() => import('./pages/PrivacyPolicy'))
-const Auth        = lazy(() => import('./pages/Auth'))
-const NotFound    = lazy(() => import('./pages/NotFound'))
+const Auth          = lazy(() => import('./pages/Auth'))
+const ResetPassword = lazy(() => import('./pages/ResetPassword'))
+const NotFound      = lazy(() => import('./pages/NotFound'))
 
 function PageLoader() {
   return (
@@ -31,7 +32,7 @@ function PageLoader() {
 
 function AppLayout() {
   const location  = useLocation()
-  const isAuthPage = location.pathname === '/auth'
+  const isAuthPage = ['/auth', '/reset-password'].includes(location.pathname)
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -49,6 +50,7 @@ function AppLayout() {
             <Route path="/contact"               element={<Contact />} />
             <Route path="/privacy-policy"        element={<Privacy />} />
             <Route path="/auth"                  element={<Auth />} />
+            <Route path="/reset-password"        element={<ResetPassword />} />
             <Route path="*"                      element={<NotFound />} />
           </Routes>
         </Suspense>

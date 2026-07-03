@@ -24,7 +24,7 @@ const signupSchema = z.object({
 })
 
 // ── Login Form ────────────────────────────────────────────────────────────────
-function LoginForm({ onSuccess }) {
+function LoginForm({ onSuccess, onForgot }) {
   const [error, setError]   = useState(null)
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
@@ -58,7 +58,12 @@ function LoginForm({ onSuccess }) {
         {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
       </div>
       <div>
-        <label className="block text-[11px] font-bold text-charcoal/50 uppercase tracking-wider mb-1.5">Password</label>
+        <div className="flex items-center justify-between mb-1.5">
+          <label className="block text-[11px] font-bold text-charcoal/50 uppercase tracking-wider">Password</label>
+          <button type="button" onClick={onForgot} className="text-xs text-teal font-semibold hover:underline">
+            Forgot password?
+          </button>
+        </div>
         <input {...register('password')} type="password" placeholder="••••••••" className="input-field rounded-xl" />
         {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>}
       </div>
@@ -141,9 +146,74 @@ function SignupForm({ onSuccess }) {
   )
 }
 
+// ── Forgot Password Form ──────────────────────────────────────────────────────
+function ForgotForm({ onBack }) {
+  const [status, setStatus]   = useState(null) // null | 'sent' | 'error'
+  const [loading, setLoading] = useState(false)
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: zodResolver(z.object({ email: z.string().email('Enter a valid email') })),
+  })
+
+  const onSubmit = async ({ email }) => {
+    setLoading(true)
+    try {
+      const res  = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.message)
+      setStatus('sent')
+    } catch {
+      setStatus('error')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (status === 'sent') return (
+    <div className="text-center py-4">
+      <div className="w-16 h-16 bg-teal/10 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg className="w-8 h-8 text-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+      </div>
+      <h3 className="font-heading font-bold text-navy text-lg mb-2">Check your inbox</h3>
+      <p className="text-gray text-sm leading-relaxed mb-6">
+        If that email is registered, we've sent a password reset link. Check your inbox (and spam folder).
+      </p>
+      <button onClick={onBack} className="text-teal font-semibold text-sm hover:underline">Back to Sign In</button>
+    </div>
+  )
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+      <div>
+        <label className="block text-[11px] font-bold text-charcoal/50 uppercase tracking-wider mb-1.5">Registered Email</label>
+        <input {...register('email')} type="email" placeholder="you@email.com" className="input-field rounded-xl" />
+        {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>}
+      </div>
+      {status === 'error' && <p className="text-red-500 text-sm bg-red-50 rounded-xl p-3 border border-red-100">Something went wrong. Please try again.</p>}
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full py-3.5 bg-navy text-white font-semibold rounded-xl hover:bg-blue transition-all duration-200 disabled:opacity-60 text-sm shadow-md"
+      >
+        {loading
+          ? <span className="flex items-center justify-center gap-2"><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />Sending...</span>
+          : 'Send Reset Link'}
+      </button>
+      <button type="button" onClick={onBack} className="w-full text-center text-gray text-sm hover:text-navy transition-colors">
+        ← Back to Sign In
+      </button>
+    </form>
+  )
+}
+
 // ── Main Auth Page ────────────────────────────────────────────────────────────
 export default function Auth() {
-  const [tab, setTab]     = useState('login')
+  const [tab, setTab]     = useState('login') // 'login' | 'signup' | 'forgot'
   const navigate          = useNavigate()
   const onSuccess         = () => navigate('/')
 
@@ -211,32 +281,34 @@ export default function Auth() {
             transition={{ duration: 0.45 }}
             className="bg-white rounded-3xl shadow-xl p-8"
           >
-            {/* Tabs */}
-            <div className="flex bg-silver rounded-2xl p-1 mb-8">
-              {[['login', 'Sign In'], ['signup', 'Sign Up']].map(([key, label]) => (
-                <button
-                  key={key}
-                  onClick={() => setTab(key)}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
-                    tab === key
-                      ? 'bg-white text-navy shadow-sm'
-                      : 'text-gray hover:text-charcoal'
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+            {/* Tabs — hidden when on forgot view */}
+            {tab !== 'forgot' && (
+              <div className="flex bg-silver rounded-2xl p-1 mb-8">
+                {[['login', 'Sign In'], ['signup', 'Sign Up']].map(([key, label]) => (
+                  <button
+                    key={key}
+                    onClick={() => setTab(key)}
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 ${
+                      tab === key ? 'bg-white text-navy shadow-sm' : 'text-gray hover:text-charcoal'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Heading */}
             <div className="mb-6">
               <h1 className="font-heading font-bold text-navy text-2xl">
-                {tab === 'login' ? 'Welcome back' : 'Create account'}
+                {tab === 'login' ? 'Welcome back' : tab === 'signup' ? 'Create account' : 'Reset Password'}
               </h1>
               <p className="text-gray text-sm mt-1">
                 {tab === 'login'
                   ? 'Sign in to access your HarAm account.'
-                  : 'Join HarAm Innovations today — it\'s free.'}
+                  : tab === 'signup'
+                  ? "Join HarAm Innovations today — it's free."
+                  : 'Enter your registered email and we\'ll send you a reset link.'}
               </p>
             </div>
 
@@ -244,28 +316,29 @@ export default function Auth() {
             <AnimatePresence mode="wait">
               <motion.div
                 key={tab}
-                initial={{ opacity: 0, x: tab === 'login' ? -12 : 12 }}
+                initial={{ opacity: 0, x: 12 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: tab === 'login' ? 12 : -12 }}
+                exit={{ opacity: 0, x: -12 }}
                 transition={{ duration: 0.2 }}
               >
-                {tab === 'login'
-                  ? <LoginForm onSuccess={onSuccess} />
-                  : <SignupForm onSuccess={onSuccess} />
-                }
+                {tab === 'login'   && <LoginForm onSuccess={onSuccess} onForgot={() => setTab('forgot')} />}
+                {tab === 'signup'  && <SignupForm onSuccess={onSuccess} />}
+                {tab === 'forgot'  && <ForgotForm onBack={() => setTab('login')} />}
               </motion.div>
             </AnimatePresence>
 
             {/* Switch tab hint */}
-            <p className="text-center text-gray text-sm mt-6">
-              {tab === 'login' ? "Don't have an account? " : 'Already have an account? '}
-              <button
-                onClick={() => setTab(tab === 'login' ? 'signup' : 'login')}
-                className="text-teal font-semibold hover:underline"
-              >
-                {tab === 'login' ? 'Sign Up' : 'Sign In'}
-              </button>
-            </p>
+            {tab !== 'forgot' && (
+              <p className="text-center text-gray text-sm mt-6">
+                {tab === 'login' ? "Don't have an account? " : 'Already have an account? '}
+                <button
+                  onClick={() => setTab(tab === 'login' ? 'signup' : 'login')}
+                  className="text-teal font-semibold hover:underline"
+                >
+                  {tab === 'login' ? 'Sign Up' : 'Sign In'}
+                </button>
+              </p>
+            )}
           </motion.div>
 
           {/* Back to site */}

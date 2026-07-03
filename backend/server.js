@@ -12,6 +12,7 @@ import contactRoutes    from './routes/contact.routes.js'
 import newsletterRoutes from './routes/newsletter.routes.js'
 import productsRoutes   from './routes/products.routes.js'
 import blogRoutes       from './routes/blog.routes.js'
+import authRoutes       from './routes/auth.routes.js'
 
 const app  = express()
 const PORT = process.env.PORT || 5001
@@ -43,6 +44,7 @@ app.get('/api/health', (req, res) => {
 })
 
 // Routes
+app.use('/api/auth',       authRoutes)
 app.use('/api/contact',    contactRoutes)
 app.use('/api/newsletter', newsletterRoutes)
 app.use('/api/products',   productsRoutes)
