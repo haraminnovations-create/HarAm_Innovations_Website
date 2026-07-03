@@ -4,7 +4,6 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import SEOHead from '../components/SEOHead'
-import { submitContact } from '../api/contact'
 import { COMPANY_INFO, SOCIAL_LINKS } from '../utils/constants'
 
 const schema = z.object({
@@ -67,7 +66,16 @@ export default function Contact() {
 
   const onSubmit = async (data) => {
     try {
-      await submitContact(data)
+      const body = new URLSearchParams({
+        'form-name': 'contact',
+        ...data,
+      }).toString()
+      const res = await fetch('/', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body,
+      })
+      if (!res.ok) throw new Error('Submit failed')
       setStatus('success')
       reset()
     } catch {
