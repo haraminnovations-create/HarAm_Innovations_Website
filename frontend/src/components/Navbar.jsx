@@ -132,7 +132,7 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Auth Buttons */}
+          {/* Auth */}
           <div className="hidden md:flex items-center gap-2">
             {user ? (
               <div className="relative" ref={userMenuRef}>
@@ -170,14 +170,9 @@ export default function Navbar() {
                 </AnimatePresence>
               </div>
             ) : (
-              <>
-                <Link to="/login" className="px-4 py-2 text-white/80 hover:text-white font-medium rounded-lg hover:bg-white/10 transition-all text-sm">
-                  Sign In
-                </Link>
-                <Link to="/signup" className="px-5 py-2.5 bg-teal text-navy font-semibold rounded-lg text-sm hover:bg-teal/90 transition-all duration-200 shadow-md">
-                  Sign Up
-                </Link>
-              </>
+              <Link to="/auth" className="px-5 py-2.5 bg-gold text-navy font-semibold rounded-lg text-sm hover:bg-gold/90 transition-all duration-200 shadow-md">
+                Login
+              </Link>
             )}
           </div>
 
@@ -248,12 +243,9 @@ export default function Navbar() {
                   </button>
                 </div>
               ) : (
-                <div className="mt-3 flex flex-col gap-2 border-t border-white/10 pt-3">
-                  <Link to="/login" className="flex justify-center py-2.5 border border-white/20 text-white font-semibold rounded-lg text-sm hover:bg-white/10 transition-colors">
-                    Sign In
-                  </Link>
-                  <Link to="/signup" className="flex justify-center py-2.5 bg-teal text-navy font-semibold rounded-lg text-sm hover:bg-teal/90 transition-colors">
-                    Sign Up
+                <div className="mt-3 border-t border-white/10 pt-3">
+                  <Link to="/auth" className="flex justify-center py-2.5 bg-gold text-navy font-semibold rounded-lg text-sm hover:bg-gold/90 transition-colors">
+                    Login
                   </Link>
                 </div>
               )}

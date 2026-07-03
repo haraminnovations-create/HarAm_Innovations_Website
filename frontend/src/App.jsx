@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { lazy, Suspense } from 'react'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
@@ -15,8 +15,7 @@ const Education   = lazy(() => import('./pages/Education'))
 const Careers     = lazy(() => import('./pages/Careers'))
 const Contact     = lazy(() => import('./pages/Contact'))
 const Privacy     = lazy(() => import('./pages/PrivacyPolicy'))
-const Login       = lazy(() => import('./pages/Login'))
-const Signup      = lazy(() => import('./pages/Signup'))
+const Auth        = lazy(() => import('./pages/Auth'))
 const NotFound    = lazy(() => import('./pages/NotFound'))
 
 function PageLoader() {
@@ -30,34 +29,42 @@ function PageLoader() {
   )
 }
 
+function AppLayout() {
+  const location  = useLocation()
+  const isAuthPage = location.pathname === '/auth'
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      {!isAuthPage && <Navbar />}
+      <main className="flex-1">
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/"                      element={<Home />} />
+            <Route path="/about"                 element={<About />} />
+            <Route path="/products"              element={<Products />} />
+            <Route path="/products/games"        element={<Games />} />
+            <Route path="/products/agriculture"  element={<Agriculture />} />
+            <Route path="/products/education"    element={<Education />} />
+            <Route path="/careers"               element={<Careers />} />
+            <Route path="/contact"               element={<Contact />} />
+            <Route path="/privacy-policy"        element={<Privacy />} />
+            <Route path="/auth"                  element={<Auth />} />
+            <Route path="*"                      element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </main>
+      {!isAuthPage && <Footer />}
+      {!isAuthPage && <CookieBanner />}
+    </div>
+  )
+}
+
 export default function App() {
   return (
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthProvider>
-      <ScrollToTop />
-      <div className="flex flex-col min-h-screen">
-        <Navbar />
-        <main className="flex-1">
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route path="/"                element={<Home />} />
-              <Route path="/about"           element={<About />} />
-              <Route path="/products"        element={<Products />} />
-              <Route path="/products/games"  element={<Games />} />
-              <Route path="/products/agriculture" element={<Agriculture />} />
-              <Route path="/products/education"   element={<Education />} />
-              <Route path="/careers"         element={<Careers />} />
-              <Route path="/contact"         element={<Contact />} />
-              <Route path="/privacy-policy"  element={<Privacy />} />
-              <Route path="/login"           element={<Login />} />
-              <Route path="/signup"          element={<Signup />} />
-              <Route path="*"               element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </main>
-        <Footer />
-        <CookieBanner />
-      </div>
+        <ScrollToTop />
+        <AppLayout />
       </AuthProvider>
     </BrowserRouter>
   )
