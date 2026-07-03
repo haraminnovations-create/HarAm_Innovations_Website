@@ -4,6 +4,7 @@ import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 import CookieBanner from './components/CookieBanner'
 import ScrollToTop from './components/ScrollToTop'
+import { AuthProvider } from './context/AuthContext'
 
 const Home        = lazy(() => import('./pages/Home'))
 const About       = lazy(() => import('./pages/About'))
@@ -14,6 +15,8 @@ const Education   = lazy(() => import('./pages/Education'))
 const Careers     = lazy(() => import('./pages/Careers'))
 const Contact     = lazy(() => import('./pages/Contact'))
 const Privacy     = lazy(() => import('./pages/PrivacyPolicy'))
+const Login       = lazy(() => import('./pages/Login'))
+const Signup      = lazy(() => import('./pages/Signup'))
 const NotFound    = lazy(() => import('./pages/NotFound'))
 
 function PageLoader() {
@@ -30,6 +33,7 @@ function PageLoader() {
 export default function App() {
   return (
     <BrowserRouter>
+      <AuthProvider>
       <ScrollToTop />
       <div className="flex flex-col min-h-screen">
         <Navbar />
@@ -45,6 +49,8 @@ export default function App() {
               <Route path="/careers"         element={<Careers />} />
               <Route path="/contact"         element={<Contact />} />
               <Route path="/privacy-policy"  element={<Privacy />} />
+              <Route path="/login"           element={<Login />} />
+              <Route path="/signup"          element={<Signup />} />
               <Route path="*"               element={<NotFound />} />
             </Routes>
           </Suspense>
@@ -52,6 +58,7 @@ export default function App() {
         <Footer />
         <CookieBanner />
       </div>
+      </AuthProvider>
     </BrowserRouter>
   )
 }

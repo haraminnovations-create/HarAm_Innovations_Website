@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link, NavLink, useLocation } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { NAV_LINKS } from '../utils/constants'
 import BrandLogo from './BrandLogo'
+import { useAuth } from '../context/AuthContext'
 
 function ChevronDown() {
   return (
@@ -29,11 +30,15 @@ function CloseIcon() {
 }
 
 export default function Navbar() {
-  const [scrolled, setScrolled]         = useState(false)
-  const [mobileOpen, setMobileOpen]     = useState(false)
-  const [dropdownOpen, setDropdownOpen] = useState(false)
-  const location = useLocation()
+  const [scrolled, setScrolled]           = useState(false)
+  const [mobileOpen, setMobileOpen]       = useState(false)
+  const [dropdownOpen, setDropdownOpen]   = useState(false)
+  const [userMenuOpen, setUserMenuOpen]   = useState(false)
+  const location    = useLocation()
+  const navigate    = useNavigate()
   const dropdownRef = useRef(null)
+  const userMenuRef = useRef(null)
+  const { user, logout } = useAuth()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
@@ -48,9 +53,8 @@ export default function Navbar() {
 
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false)
-      }
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setDropdownOpen(false)
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) setUserMenuOpen(false)
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
@@ -128,11 +132,53 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* CTA Button */}
-          <div className="hidden md:block">
-            <Link to="/contact" className="inline-flex items-center px-5 py-2.5 bg-gold text-navy font-semibold rounded-lg text-sm hover:bg-gold/90 transition-all duration-200 shadow-md">
-              Get in Touch
-            </Link>
+          {/* Auth Buttons */}
+          <div className="hidden md:flex items-center gap-2">
+            {user ? (
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  onClick={() => setUserMenuOpen((o) => !o)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-white/10 transition-all"
+                >
+                  <div className="w-8 h-8 rounded-full bg-teal flex items-center justify-center text-navy font-bold text-sm">
+                    {user.name ? user.name[0].toUpperCase() : user.email[0].toUpperCase()}
+                  </div>
+                  <span className="text-white/80 text-sm font-medium max-w-[100px] truncate">{user.name || user.email}</span>
+                  <ChevronDown />
+                </button>
+                <AnimatePresence>
+                  {userMenuOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 8 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute top-full mt-2 right-0 w-44 bg-white rounded-xl shadow-xl border border-silver overflow-hidden"
+                    >
+                      <div className="px-4 py-3 border-b border-silver">
+                        <p className="text-xs font-bold text-charcoal/50 uppercase tracking-wider">Signed in as</p>
+                        <p className="text-navy text-sm font-semibold truncate">{user.email}</p>
+                      </div>
+                      <button
+                        onClick={() => { logout(); navigate('/'); setUserMenuOpen(false) }}
+                        className="w-full text-left px-4 py-3 text-red-500 hover:bg-red-50 text-sm font-medium transition-colors"
+                      >
+                        Sign Out
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <>
+                <Link to="/login" className="px-4 py-2 text-white/80 hover:text-white font-medium rounded-lg hover:bg-white/10 transition-all text-sm">
+                  Sign In
+                </Link>
+                <Link to="/signup" className="px-5 py-2.5 bg-teal text-navy font-semibold rounded-lg text-sm hover:bg-teal/90 transition-all duration-200 shadow-md">
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Hamburger */}
@@ -191,9 +237,26 @@ export default function Navbar() {
                   </NavLink>
                 )
               )}
-              <Link to="/contact" className="mt-3 flex justify-center py-2.5 bg-gold text-navy font-semibold rounded-lg text-sm hover:bg-gold/90 transition-colors">
-                Get in Touch
-              </Link>
+              {user ? (
+                <div className="mt-3 border-t border-white/10 pt-3">
+                  <p className="px-4 py-1 text-white/40 text-xs truncate">{user.email}</p>
+                  <button
+                    onClick={() => { logout(); navigate('/'); setMobileOpen(false) }}
+                    className="w-full text-left px-4 py-2.5 text-red-400 hover:bg-white/10 rounded-lg font-medium text-sm transition-colors"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-3 flex flex-col gap-2 border-t border-white/10 pt-3">
+                  <Link to="/login" className="flex justify-center py-2.5 border border-white/20 text-white font-semibold rounded-lg text-sm hover:bg-white/10 transition-colors">
+                    Sign In
+                  </Link>
+                  <Link to="/signup" className="flex justify-center py-2.5 bg-teal text-navy font-semibold rounded-lg text-sm hover:bg-teal/90 transition-colors">
+                    Sign Up
+                  </Link>
+                </div>
+              )}
             </div>
           </motion.div>
         )}
